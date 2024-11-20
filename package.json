@@ -1,0 +1,14 @@
+{
+  "type": "module",
+  "exports": "./index.js",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "image-downloader": "^4.3.0",
+    "node-id3": "^0.2.6",
+    "sanitize-filename": "^1.6.3"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-nicjansma": "^1.1.0"
+  }
+}
