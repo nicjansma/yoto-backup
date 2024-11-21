@@ -14,7 +14,6 @@ import sanitize from "sanitize-filename";
 import { readFile } from "fs/promises";
 
 // local imports
-import constants from "./src/constants.js";
 import YotoApi from "./src/yoto-api.js";
 import { downloadFile, downloadImage, writeTags } from "./src/utils.js";
 
