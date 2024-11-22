@@ -119,6 +119,7 @@ for (let card of cards) {
     // card.json
     //
     let cardData = null;
+    let freshCardDataFetched = false;
 
     if (!fs.existsSync(jsonFile)) {
         console.log(`  ${chalk.yellow("…")} JSON data`);
@@ -128,6 +129,7 @@ for (let card of cards) {
         // write the card.json
         fs.writeFileSync(jsonFile, JSON.stringify(cardData));
 
+        freshCardDataFetched = true;
         copied = true;
     } else {
         console.log(`  ${chalk.green("✓")} JSON data`);
@@ -194,6 +196,19 @@ for (let card of cards) {
 
             // see if we can download
             if (!fs.existsSync(trackFileName)) {
+                // we may need new card data for this run
+                if (!freshCardDataFetched) {
+                    console.log(`  ${chalk.yellow("…")} JSON data`);
+
+                    cardData = await YotoApi.card(cardId);
+
+                    // write the card.json
+                    fs.writeFileSync(jsonFile, JSON.stringify(cardData));
+
+                    freshCardDataFetched = true;
+                    copied = true;
+                }
+
                 // get the signed track URL
                 let trackUrl = cardData?.card?.content?.chapters[c]?.tracks[t]?.trackUrl;
 
