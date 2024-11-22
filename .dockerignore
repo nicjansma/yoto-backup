@@ -2,3 +2,7 @@
 config.json
 .eslintrc
 .gitignore
+.git
+.vscode
+Dockerfile
+.dockerignore
