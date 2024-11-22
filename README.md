@@ -1,5 +1,9 @@
 # yoto-backup
 
+https://github.com/nicjansma/yoto-backup
+
+https://hub.docker.com/r/nicjansma/yoto-backup
+
 ## `backup-cards-from-sd.js`
 
 Backup your Yoto card content, via its SD card.
