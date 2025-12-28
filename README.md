@@ -56,10 +56,10 @@ Available as a docker image:
 ```sh
 
 # backup-cards-from-web.sj
-docker run -v ./:/home/ -v /my-path-to-cards/:/data/ nicjansma:yoto-backup
+docker run -v ./config.json:/home/config.json -v ./device-auth.json:/home/device-auth.json -v /my-path-to-cards/:/data/ nicjansma:yoto-backup
 
 # backup-cards-from-sd.sj
-docker run -v ./:/home/ -v /my-path-to-cards/:/data/ -v /my-path-to-sd-card/:/sd/ nicjansma:yoto-backup node backup-cards-from-sd.js /sd/ /data/
+docker run -v ./config.json:/home/config.json -v ./device-auth.json:/home/device-auth.json -v /my-path-to-cards/:/data/ -v /my-path-to-sd-card/:/sd/ nicjansma:yoto-backup node backup-cards-from-sd.js /sd/ /data/
 ```
 
 ## Version History
