@@ -31,28 +31,49 @@ if (process.argv.length !== 3) {
 
 let config = null;
 
-// load config.json
-if (fs.existsSync("config.json")) {
-    config = JSON.parse(
-        await readFile(
-            new URL("./config.json", import.meta.url)
-        )
-    );
-}
+if (!fs.existsSync("device-auth.json")) {
+    console.error(chalk.red("Error: No device-auth.json file found, please run login.js first"));
 
-// login to Yoto if credentials are specified
-if (config && config.userName && config.password) {
-    await YotoApi.login(config);
-} else {
-    console.log(chalk.yellow("Warning: No login credentials specified in config.json"));
-}
-
-if (!YotoApi.loggedIn()) {
-    console.error(chalk.red("Error: Could not login, check config.json"));
     process.exit(1);
 }
 
-console.log(chalk.green("✓ config.json read OK"));
+// login to Yoto from device-auth.json
+let deviceAuth = await YotoApi.loginFromFile("device-auth.json");
+
+if (!deviceAuth) {
+    console.error(chalk.red("Error: device-auth.json could not be read, please run login.js first"));
+
+    process.exit(1);
+}
+
+// check for token expiry
+if (YotoApi.isTokenExpired(deviceAuth.access_token)) {
+    console.log(chalk.yellow("Info: Access token expired, refreshing..."));
+
+    let refreshedAuth = await YotoApi.refreshAccessToken(config, deviceAuth.refresh_token);
+
+    if (!refreshedAuth) {
+        console.error(chalk.red("Error: Could not refresh access token, please run login.js again"));
+
+        process.exit(1);
+    }
+
+    // merge refreshed auth data
+    deviceAuth = Object.assign(deviceAuth, refreshedAuth);
+
+    // write updated auth data to device-auth.json
+    fs.writeFileSync("device-auth.json", JSON.stringify(deviceAuth, null, 4));
+
+    console.log(chalk.green("✓ Access token refreshed"));
+}
+
+if (!YotoApi.loggedIn()) {
+    console.error(chalk.red("Error: Could not login, run login.js"));
+
+    process.exit(1);
+}
+
+console.log(chalk.green("✓ device-auth.json read OK"));
 
 // ensure directories exist
 let outputDir = path.resolve(process.argv[2]);
@@ -65,8 +86,18 @@ if (!fs.existsSync(outputDir)) {
 
 console.log(chalk.green("... Fetching My Cards"));
 
+let yotoCallback = await YotoApi.myCards();
+
+if (!yotoCallback || !yotoCallback.cards) {
+    console.error(chalk.red("Error: Could not fetch My Cards"));
+
+    console.log(yotoCallback);
+
+    process.exit(1);
+}
+
 // get My Cards first
-let myCards = (await YotoApi.myCards()).cards.map(c => {
+let myCards = yotoCallback.cards.map(c => {
     return {
         title: c.title,
         cardId: c.cardId
