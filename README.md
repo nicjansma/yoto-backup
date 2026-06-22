@@ -49,6 +49,14 @@ Usage:
     node backup-cards-from-web.js [output directory]
     ```
 
+## `compare-cards.js`
+
+Compare online cards vs. downloaded.
+
+```sh
+node compare-cards.js [downloaded directory]
+```
+
 ## Docker
 
 Available as a docker image:
@@ -67,3 +75,6 @@ docker run -v ./config.json:/home/config.json -v ./device-auth.json:/home/device
 * 2024-11-22: v1.0: Initial release
 * 2025-12-27: v1.1: Updated per Yoto APIs
   * **Breaking change**: For `backup-cards-from-web.js` you'll need to `login.js` first
+* 2026-06-022: v1.2:
+  * Removed Yoto `profile` access need
+  * Added `compare-cards.js` to compare online vs. local downloads
