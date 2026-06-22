@@ -92,7 +92,7 @@ export async function deviceAuth(config) {
             },
             body: new URLSearchParams({
                 client_id: config.clientId,
-                scope: "profile offline_access",
+                scope: "offline_access",
                 audience: constants.BASE_URL
             })
         })
