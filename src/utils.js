@@ -73,8 +73,9 @@ export async function downloadFile(url, fileName) {
  * @param {string} chapter Chapter name
  * @param {string} track Track name
  * @param {string} trackFileName Track file name
+ * @param {string} [iconFilePath] Path to the already-downloaded icon, embedded as artwork
  */
-export function writeTags(json, chapter, track, trackFileName) {
+export function writeTags(json, chapter, track, trackFileName, iconFilePath) {
     const tags = {
         title: chapter.title,
         artist: json.card.metadata.author,
@@ -85,8 +86,11 @@ export function writeTags(json, chapter, track, trackFileName) {
         tags.TRCK = track.key;
     }
 
-    if (chapter.display && chapter.display.icon16x16) {
-        tags.APIC = chapter.display.icon16x16.replace("yoto:#");
+    // APIC needs a path to image data. It used to be set to the icon16x16 field, which is
+    // a "yoto:#<hash>" URI, not a file — and .replace("yoto:#") with no second argument
+    // substituted the literal string "undefined" rather than stripping the prefix.
+    if (iconFilePath && fs.existsSync(iconFilePath)) {
+        tags.APIC = iconFilePath;
     }
 
     NodeID3.write(tags, trackFileName);
