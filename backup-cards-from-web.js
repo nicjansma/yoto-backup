@@ -15,6 +15,7 @@ import { readFile } from "fs/promises";
 
 // local imports
 import YotoApi from "./src/yoto-api.js";
+import constants from "./src/constants.js";
 import { downloadFile, downloadImage, writeTags } from "./src/utils.js";
 
 //
@@ -239,6 +240,29 @@ for (let card of cards) {
 
             let trackFileName = path.join(cardPath, baseFileName);
 
+            // icons — fetched before the track so the artwork can be embedded in its tags
+            let iconFileName = null;
+
+            if (chapter.display && chapter.display.icon16x16) {
+                // icon16x16 comes in two shapes: a full https URL, or a "yoto:#<hash>" URI
+                // naming an icon under ICON_URL. Passing the first shape through unchanged is
+                // what was missing — prepending ICON_URL to it builds a nonsense URL and 403s.
+                let icon = String(chapter.display.icon16x16);
+                let iconSrc = /^https?:\/\//i.test(icon)
+                    ? icon
+                    : constants.ICON_URL + icon.replace(/^yoto:#/, "");
+
+                iconFileName = path.join(cardPath, baseIconFileName);
+
+                if (!fs.existsSync(iconFileName)) {
+                    console.log(`  ${chalk.yellow("…")} ${baseIconFileName} - downloading...`);
+
+                    await downloadImage(iconSrc, iconFileName);
+
+                    copied = true;
+                }
+            }
+
             // see if we can download
             if (!fs.existsSync(trackFileName)) {
                 // we may need new card data for this run
@@ -263,7 +287,7 @@ for (let card of cards) {
                     await downloadFile(trackUrl, trackFileName);
 
                     // write ID3 tags
-                    writeTags(cardData, chapter, track, trackFileName);
+                    writeTags(cardData, chapter, track, trackFileName, iconFileName);
 
                     copied = true;
                 }
@@ -276,20 +300,6 @@ for (let card of cards) {
                 missingContent = true;
             } else {
                 console.log(`  ${chalk.green("✓")} ${baseFileName}`);
-            }
-
-            // icons
-            if (chapter.display && chapter.display.icon16x16) {
-                let iconPath = chapter.display.icon16x16;
-                let iconFileName = path.join(cardPath, baseIconFileName);
-
-                if (!fs.existsSync(iconFileName)) {
-                    console.log(`  ${chalk.yellow("…")} ${iconFileName} - ${iconPath} downloading...`);
-
-                    await downloadImage(iconPath, iconFileName);
-
-                    copied = true;
-                }
             }
         }
     }
