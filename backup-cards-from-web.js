@@ -29,7 +29,13 @@ if (process.argv.length !== 3) {
     process.exit(1);
 }
 
-let config = null;
+// The client ID is needed to refresh an expired access token. Prefer the copy stored in
+// device-auth.json at login; fall back to config.json for auth files written by older
+// versions. This used to be `let config = null`, which was never assigned, so every run
+// that started with an expired token died in refreshAccessToken reading config.clientId.
+let config = fs.existsSync("config.json")
+    ? JSON.parse(readFileSync("config.json", "utf-8"))
+    : null;
 
 if (!fs.existsSync("device-auth.json")) {
     console.error(chalk.red("Error: No device-auth.json file found, please run login.js first"));
@@ -50,7 +56,15 @@ if (!deviceAuth) {
 if (YotoApi.isTokenExpired(deviceAuth.access_token)) {
     console.log(chalk.yellow("Info: Access token expired, refreshing..."));
 
-    let refreshedAuth = await YotoApi.refreshAccessToken(config, deviceAuth.refresh_token);
+    let clientId = deviceAuth.client_id || (config && config.clientId);
+
+    if (!clientId) {
+        console.error(chalk.red("Error: No client ID available to refresh the token — please run login.js again"));
+
+        process.exit(1);
+    }
+
+    let refreshedAuth = await YotoApi.refreshAccessToken({ clientId }, deviceAuth.refresh_token);
 
     if (!refreshedAuth) {
         console.error(chalk.red("Error: Could not refresh access token, please run login.js again"));

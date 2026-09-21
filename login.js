@@ -83,6 +83,10 @@ if (attempt === 60 || accessToken === null) {
 
 auth = Object.assign(auth, accessToken);
 
+// Keep the client ID alongside the tokens: refreshing an expired access token needs it,
+// and the backup scripts shouldn't have to depend on config.json still being around.
+auth.client_id = config.clientId;
+
 // write auth data to device-auth.json with new auth data
 fs.writeFileSync("device-auth.json", JSON.stringify(auth, null, 4));
 
