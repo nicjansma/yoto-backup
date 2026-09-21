@@ -38,9 +38,32 @@ export function downloadImage(url, filepath) {
 export async function downloadFile(url, fileName) {
     const res = await fetch(url);
 
-    const fileStream = fs.createWriteStream(fileName, { flags: "wx" });
+    // Signed track URLs expire. Without this check the error body (e.g. S3's
+    // AccessDenied XML) gets written out as a .mp3 and the caller reports success.
+    if (!res.ok) {
+        throw new Error(`Download failed: HTTP ${res.status} ${res.statusText}`);
+    }
 
-    await finished(Readable.fromWeb(res.body).pipe(fileStream));
+    // Write to a temporary file and rename on success, so an interrupted download can
+    // only ever leave a stray .part behind — never a truncated .mp3 that the next run's
+    // "file already exists" check would treat as complete.
+    const tmpName = `${fileName}.part`;
+
+    const fileStream = fs.createWriteStream(tmpName, { flags: "w" });
+
+    try {
+        await finished(Readable.fromWeb(res.body).pipe(fileStream));
+    } catch (error) {
+        try {
+            fs.unlinkSync(tmpName);
+        } catch {
+            // already gone
+        }
+
+        throw error;
+    }
+
+    fs.renameSync(tmpName, fileName);
 }
 
 /**
