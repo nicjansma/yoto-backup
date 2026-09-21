@@ -222,16 +222,22 @@ for (let dir of dirs) {
 
             // icons
             if (chapter.display && chapter.display.icon16x16) {
-                let iconId = chapter.display.icon16x16.replace("yoto:#", "");
-                let origIconFileName = path.join(fullDir, iconId);
+                // icon16x16 comes in two shapes: a full https URL, or a "yoto:#<hash>" URI
+                // naming an icon under ICON_URL. Only the second has a hash to look for on
+                // the SD card, and prepending ICON_URL to the first builds a broken URL.
+                let icon = String(chapter.display.icon16x16);
+                let isUrl = /^https?:\/\//i.test(icon);
+                let iconId = icon.replace(/^yoto:#/, "");
+                let iconSrc = isUrl ? icon : constants.ICON_URL + iconId;
+                let origIconFileName = isUrl ? null : path.join(fullDir, iconId);
                 let iconFileName = path.join(outputPath, baseIconFileName);
 
-                if (fs.existsSync(origIconFileName) && !fs.existsSync(iconFileName)) {
+                if (origIconFileName && fs.existsSync(origIconFileName) && !fs.existsSync(iconFileName)) {
                     fs.copyFileSync(origIconFileName, iconFileName);
 
                     copied = true;
                 } else if (!fs.existsSync(iconFileName)) {
-                    await downloadImage(constants.ICON_URL + iconId, iconFileName);
+                    await downloadImage(iconSrc, iconFileName);
 
                     copied = true;
                 }
