@@ -193,12 +193,17 @@ for (let dir of dirs) {
                 if (trackUrl) {
                     console.log(`  ${chalk.yellow("…")} ${baseFileName} (${track.trackUrl}) - downloading...`);
 
-                    await downloadFile(trackUrl, trackFileName);
+                    // a failed track is reported as missing below, rather than aborting the run
+                    try {
+                        await downloadFile(trackUrl, trackFileName);
 
-                    // write ID3 tags
-                    writeTags(json, chapter, track, trackFileName);
+                        // write ID3 tags
+                        writeTags(json, chapter, track, trackFileName);
 
-                    copied = true;
+                        copied = true;
+                    } catch (error) {
+                        console.log(`  ${chalk.red("…")} ${baseFileName} - download failed: ${error.message}`);
+                    }
                 }
             }
 
@@ -237,9 +242,14 @@ for (let dir of dirs) {
 
                     copied = true;
                 } else if (!fs.existsSync(iconFileName)) {
-                    await downloadImage(iconSrc, iconFileName);
+                    // an icon failure shouldn't stop the rest of the backup
+                    try {
+                        await downloadImage(iconSrc, iconFileName);
 
-                    copied = true;
+                        copied = true;
+                    } catch (error) {
+                        console.log(`  ${chalk.red("…")} ${baseIconFileName} - icon download failed: ${error.message}`);
+                    }
                 }
             }
         }

@@ -257,9 +257,16 @@ for (let card of cards) {
                 if (!fs.existsSync(iconFileName)) {
                     console.log(`  ${chalk.yellow("…")} ${baseIconFileName} - downloading...`);
 
-                    await downloadImage(iconSrc, iconFileName);
+                    // an icon failure shouldn't stop the track (or the rest of the backup)
+                    try {
+                        await downloadImage(iconSrc, iconFileName);
 
-                    copied = true;
+                        copied = true;
+                    } catch (error) {
+                        console.log(`  ${chalk.red("…")} ${baseIconFileName} - icon download failed: ${error.message}`);
+
+                        iconFileName = null;
+                    }
                 }
             }
 
@@ -284,12 +291,17 @@ for (let card of cards) {
                 if (trackUrl) {
                     console.log(`  ${chalk.yellow("…")} ${baseFileName} (${track.trackUrl}) - downloading...`);
 
-                    await downloadFile(trackUrl, trackFileName);
+                    // a failed track is reported as missing below, rather than aborting the run
+                    try {
+                        await downloadFile(trackUrl, trackFileName);
 
-                    // write ID3 tags
-                    writeTags(cardData, chapter, track, trackFileName, iconFileName);
+                        // write ID3 tags
+                        writeTags(cardData, chapter, track, trackFileName, iconFileName);
 
-                    copied = true;
+                        copied = true;
+                    } catch (error) {
+                        console.log(`  ${chalk.red("…")} ${baseFileName} - download failed: ${error.message}`);
+                    }
                 }
             }
 
