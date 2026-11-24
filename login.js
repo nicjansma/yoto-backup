@@ -85,6 +85,7 @@ auth = Object.assign(auth, accessToken);
 
 // Keep the client ID alongside the tokens: refreshing an expired access token needs it,
 // and the backup scripts shouldn't have to depend on config.json still being around.
+/* eslint-disable-next-line camelcase */
 auth.client_id = config.clientId;
 
 // write auth data to device-auth.json with new auth data
