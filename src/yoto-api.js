@@ -180,7 +180,7 @@ export function isTokenExpired(token) {
         // Add a 30-second buffer to refresh before it actually expires
         return (decoded.exp * 1000) < (Date.now() + 30000);
     } catch (error) {
-        throw new Error("YotoAPI: Unable to decode access token");
+        throw new Error("YotoAPI: Unable to decode access token", { cause: error });
     }
 }
 

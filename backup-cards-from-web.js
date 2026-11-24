@@ -159,7 +159,7 @@ for (let card of cards) {
     //
     // card.json
     //
-    let cardData = null;
+    let cardData;
     let freshCardDataFetched = false;
 
     if (!fs.existsSync(jsonFile)) {
