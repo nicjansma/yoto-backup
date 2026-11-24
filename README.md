@@ -93,6 +93,7 @@ npm test
   * Fixed: Track icons never downloaded (via [matanmi12](https://github.com/matanmi12))
   * Fixed: Downloads use stream pipeline so errors reject instead of hanging
   * Fixed: SD icons are fetched ahead of time so they're embedded correctly
+  * Tests added
 
 ## AI Disclosure
 
