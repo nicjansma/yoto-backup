@@ -180,6 +180,35 @@ for (let dir of dirs) {
 
             let trackFileName = path.join(outputPath, baseFileName);
 
+            // icons — fetched before the track so the artwork can be embedded in its tags
+            let iconFileName = null;
+
+            if (chapter.display && chapter.display.icon16x16) {
+                let { url: iconSrc, id: iconId } = resolveIcon(chapter.display.icon16x16);
+
+                // only "yoto:#<hash>" icons can be on the SD card
+                let origIconFileName = iconId ? path.join(fullDir, iconId) : null;
+
+                iconFileName = path.join(outputPath, baseIconFileName);
+
+                if (origIconFileName && fs.existsSync(origIconFileName) && !fs.existsSync(iconFileName)) {
+                    fs.copyFileSync(origIconFileName, iconFileName);
+
+                    copied = true;
+                } else if (!fs.existsSync(iconFileName)) {
+                    // an icon failure shouldn't stop the track (or the rest of the backup)
+                    try {
+                        await downloadImage(iconSrc, iconFileName);
+
+                        copied = true;
+                    } catch (error) {
+                        console.log(`  ${chalk.red("…")} ${baseIconFileName} - icon download failed: ${error.message}`);
+
+                        iconFileName = null;
+                    }
+                }
+            }
+
             // see if we can download
             if (!fs.existsSync(trackFileName) && !fs.existsSync(origFileName) && YotoApi.loggedIn()) {
                 if (!cardData) {
@@ -197,7 +226,7 @@ for (let dir of dirs) {
                         await downloadFile(trackUrl, trackFileName);
 
                         // write ID3 tags
-                        writeTags(json, chapter, track, trackFileName);
+                        writeTags(json, chapter, track, trackFileName, iconFileName);
 
                         copied = true;
                     } catch (error) {
@@ -219,33 +248,9 @@ for (let dir of dirs) {
                 copied = true;
 
                 // write ID3 tags
-                writeTags(json, chapter, track, trackFileName);
+                writeTags(json, chapter, track, trackFileName, iconFileName);
             } else {
                 console.log(`  ${chalk.green("✓")} ${baseFileName}`);
-            }
-
-            // icons
-            if (chapter.display && chapter.display.icon16x16) {
-                let { url: iconSrc, id: iconId } = resolveIcon(chapter.display.icon16x16);
-
-                // only "yoto:#<hash>" icons can be on the SD card
-                let origIconFileName = iconId ? path.join(fullDir, iconId) : null;
-                let iconFileName = path.join(outputPath, baseIconFileName);
-
-                if (origIconFileName && fs.existsSync(origIconFileName) && !fs.existsSync(iconFileName)) {
-                    fs.copyFileSync(origIconFileName, iconFileName);
-
-                    copied = true;
-                } else if (!fs.existsSync(iconFileName)) {
-                    // an icon failure shouldn't stop the rest of the backup
-                    try {
-                        await downloadImage(iconSrc, iconFileName);
-
-                        copied = true;
-                    } catch (error) {
-                        console.log(`  ${chalk.red("…")} ${baseIconFileName} - icon download failed: ${error.message}`);
-                    }
-                }
             }
         }
     }
