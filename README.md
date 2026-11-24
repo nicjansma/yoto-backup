@@ -78,3 +78,14 @@ docker run -v ./config.json:/home/config.json -v ./device-auth.json:/home/device
 * 2026-06-022: v1.2:
   * Removed Yoto `profile` access need
   * Added `compare-cards.js` to compare online vs. local downloads
+* 2026-11-24: v1.3:
+  * Fixed: Failed downloads were saved as .mp3 and reported as successes (via [matanmi12](https://github.com/matanmi12))
+  * Fixed: ID3 artwork embedded the literal string `undefined` (via [matanmi12](https://github.com/matanmi12))
+  * Fixed: Token refresh always threw (via [matanmi12](https://github.com/matanmi12))
+  * Fixed: Track icons never downloaded (via [matanmi12](https://github.com/matanmi12))
+  * Fixed: Downloads use stream pipeline so errors reject instead of hanging
+  * Fixed: SD icons are fetched ahead of time so they're embedded correctly
+
+## AI Disclosure
+
+Since `v1.3` AI has been used by contributors at various times to debug, diagnose, write, test and verify changes.
