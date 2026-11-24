@@ -28,8 +28,7 @@ if (process.argv.length !== 3) {
     process.exit(1);
 }
 
-// See backup-cards-from-web.js: this used to be `let config = null`, which was never
-// assigned, so refreshing an expired access token always threw on config.clientId.
+// for the client ID when refreshing tokens, if device-auth.json predates storing it
 let config = fs.existsSync("config.json") ?
     JSON.parse(readFileSync("config.json", "utf-8")) :
     null;

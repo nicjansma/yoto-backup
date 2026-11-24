@@ -83,8 +83,7 @@ if (attempt === 60 || accessToken === null) {
 
 auth = Object.assign(auth, accessToken);
 
-// Keep the client ID alongside the tokens: refreshing an expired access token needs it,
-// and the backup scripts shouldn't have to depend on config.json still being around.
+// store the client ID, which is needed to refresh the access token
 /* eslint-disable-next-line camelcase */
 auth.client_id = config.clientId;
 

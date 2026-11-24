@@ -61,15 +61,13 @@ export function resolveIcon(icon) {
 export async function downloadFile(url, fileName) {
     const res = await fetch(url);
 
-    // Signed track URLs expire. Without this check the error body (e.g. S3's
-    // AccessDenied XML) gets written out as a .mp3 and the caller reports success.
+    // e.g. an expired signed URL; don't save the error body as the track
     if (!res.ok) {
         throw new Error(`Download failed: HTTP ${res.status} ${res.statusText}`);
     }
 
-    // Write to a temporary file and rename on success, so an interrupted download can
-    // only ever leave a stray .part behind — never a truncated .mp3 that the next run's
-    // "file already exists" check would treat as complete.
+    // download to a .part file and rename on success, so an interrupted download
+    // never leaves a truncated file that later runs would treat as complete
     const tmpName = `${fileName}.part`;
 
     try {
@@ -108,9 +106,7 @@ export function writeTags(json, chapter, track, trackFileName, iconFilePath) {
         tags.TRCK = track.key;
     }
 
-    // APIC needs a path to image data. It used to be set to the icon16x16 field, which is
-    // a "yoto:#<hash>" URI, not a file — and .replace("yoto:#") with no second argument
-    // substituted the literal string "undefined" rather than stripping the prefix.
+    // embed the icon as artwork
     if (iconFilePath && fs.existsSync(iconFilePath)) {
         tags.APIC = iconFilePath;
     }

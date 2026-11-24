@@ -28,10 +28,7 @@ if (process.argv.length !== 3) {
     process.exit(1);
 }
 
-// The client ID is needed to refresh an expired access token. Prefer the copy stored in
-// device-auth.json at login; fall back to config.json for auth files written by older
-// versions. This used to be `let config = null`, which was never assigned, so every run
-// that started with an expired token died in refreshAccessToken reading config.clientId.
+// for the client ID when refreshing tokens, if device-auth.json predates storing it
 let config = fs.existsSync("config.json") ?
     JSON.parse(readFileSync("config.json", "utf-8")) :
     null;
