@@ -7,6 +7,9 @@ import { Readable } from "stream";
 import { pipeline } from "stream/promises";
 import fs from "fs";
 
+// local imports
+import constants from "./constants.js";
+
 //
 // Functions
 //
@@ -25,6 +28,26 @@ export function downloadImage(url, filepath) {
         dest: filepath,
         extractFilename: false
     });
+}
+
+/**
+ * Resolves a chapter icon (display.icon16x16), which is either a full URL or a
+ * "yoto:#<hash>" URI naming an icon under ICON_URL.
+ *
+ * @param {string} icon icon16x16 value
+ *
+ * @returns {object} { url: download URL, id: icon hash (null for full URLs) }
+ */
+export function resolveIcon(icon) {
+    icon = String(icon);
+
+    if (/^https?:\/\//i.test(icon)) {
+        return { url: icon, id: null };
+    }
+
+    const id = icon.replace(/^yoto:#/, "");
+
+    return { url: constants.ICON_URL + id, id };
 }
 
 /**

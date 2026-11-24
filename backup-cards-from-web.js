@@ -15,8 +15,7 @@ import { readFile } from "fs/promises";
 
 // local imports
 import YotoApi from "./src/yoto-api.js";
-import constants from "./src/constants.js";
-import { downloadFile, downloadImage, writeTags } from "./src/utils.js";
+import { downloadFile, downloadImage, resolveIcon, writeTags } from "./src/utils.js";
 
 //
 // Constants
@@ -244,13 +243,7 @@ for (let card of cards) {
             let iconFileName = null;
 
             if (chapter.display && chapter.display.icon16x16) {
-                // icon16x16 comes in two shapes: a full https URL, or a "yoto:#<hash>" URI
-                // naming an icon under ICON_URL. Passing the first shape through unchanged is
-                // what was missing — prepending ICON_URL to it builds a nonsense URL and 403s.
-                let icon = String(chapter.display.icon16x16);
-                let iconSrc = /^https?:\/\//i.test(icon)
-                    ? icon
-                    : constants.ICON_URL + icon.replace(/^yoto:#/, "");
+                let iconSrc = resolveIcon(chapter.display.icon16x16).url;
 
                 iconFileName = path.join(cardPath, baseIconFileName);
 
