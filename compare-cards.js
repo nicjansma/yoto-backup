@@ -15,6 +15,7 @@ import sanitize from "sanitize-filename";
 
 // local imports
 import YotoApi from "./src/yoto-api.js";
+import { compareCards, dedupeCards } from "./src/utils.js";
 
 //
 // Constants
@@ -130,16 +131,7 @@ let familyCards = (await YotoApi.familyCards()).cards.map(c => {
 console.log(chalk.green("    ✓ Complete"));
 
 // de-duplicate online cards by cardId (a card can appear in both lists)
-let onlineCards = [];
-let onlineSeen = new Set();
-
-for (let card of myCards.concat(familyCards)) {
-    if (!onlineSeen.has(card.cardId)) {
-        onlineSeen.add(card.cardId);
-
-        onlineCards.push(card);
-    }
-}
+let onlineCards = dedupeCards(myCards.concat(familyCards));
 
 //
 // Read the downloaded library
@@ -183,42 +175,7 @@ console.log(chalk.green(`    ✓ Found ${downloadedCards.length} downloaded card
 //
 // Compare
 //
-// A downloaded card matches an online card if their cardIds match, or - when
-// no cardId is available on disk - if the sanitized online title matches the
-// downloaded directory name.
-//
-let downloadedById = new Map();
-let downloadedByDir = new Map();
-
-for (let card of downloadedCards) {
-    if (card.cardId) {
-        downloadedById.set(card.cardId, card);
-    }
-
-    downloadedByDir.set(card.dirName, card);
-}
-
-let matchedDownloaded = new Set();
-
-// added = online but not in the downloaded library
-let added = [];
-
-for (let card of onlineCards) {
-    let match = downloadedById.get(card.cardId);
-
-    if (!match) {
-        match = downloadedByDir.get(sanitize(card.title));
-    }
-
-    if (match) {
-        matchedDownloaded.add(match);
-    } else {
-        added.push(card);
-    }
-}
-
-// removed = downloaded but no longer online
-let removed = downloadedCards.filter(card => !matchedDownloaded.has(card));
+let { added, removed } = compareCards(onlineCards, downloadedCards, sanitize);
 
 //
 // Results

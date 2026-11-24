@@ -113,3 +113,92 @@ export function writeTags(json, chapter, track, trackFileName, iconFilePath) {
 
     NodeID3.write(tags, trackFileName);
 }
+
+/**
+ * Builds a track's base file name (without extension), e.g. "01. Title".
+ *
+ * The number is the running track number, unless the track has an
+ * overlayLabel or overlayLabelOverride (the latter wins).
+ *
+ * @param {number} trackNumber Running (1-based) track number on the card
+ * @param {object} track Track data (title, overlayLabel, overlayLabelOverride)
+ *
+ * @returns {string} Base file name
+ */
+export function trackBaseName(trackNumber, track) {
+    let label = String(trackNumber);
+
+    if (track.overlayLabel) {
+        label = track.overlayLabel;
+    }
+
+    if (track.overlayLabelOverride) {
+        label = track.overlayLabelOverride;
+    }
+
+    return `${label.padStart(2, "0")}. ${track.title}`;
+}
+
+/**
+ * De-duplicates cards by cardId, keeping the first occurrence.
+ *
+ * @param {object[]} cards Cards ({ cardId, title })
+ *
+ * @returns {object[]} De-duplicated cards
+ */
+export function dedupeCards(cards) {
+    const seen = new Set();
+
+    return cards.filter((card) => {
+        if (seen.has(card.cardId)) {
+            return false;
+        }
+
+        seen.add(card.cardId);
+
+        return true;
+    });
+}
+
+/**
+ * Compares online cards against downloaded cards.
+ *
+ * A downloaded card matches an online card if their cardIds match, or - when
+ * no cardId is available on disk - if the sanitized online title matches the
+ * downloaded directory name.
+ *
+ * @param {object[]} onlineCards Online cards ({ cardId, title })
+ * @param {object[]} downloadedCards Downloaded cards ({ cardId, title, dirName })
+ * @param {Function} sanitize Title-to-directory-name function
+ *
+ * @returns {object} { added: online but not downloaded, removed: downloaded but not online }
+ */
+export function compareCards(onlineCards, downloadedCards, sanitize) {
+    const downloadedById = new Map();
+    const downloadedByDir = new Map();
+
+    for (const card of downloadedCards) {
+        if (card.cardId) {
+            downloadedById.set(card.cardId, card);
+        }
+
+        downloadedByDir.set(card.dirName, card);
+    }
+
+    const matchedDownloaded = new Set();
+    const added = [];
+
+    for (const card of onlineCards) {
+        const match = downloadedById.get(card.cardId) || downloadedByDir.get(sanitize(card.title));
+
+        if (match) {
+            matchedDownloaded.add(match);
+        } else {
+            added.push(card);
+        }
+    }
+
+    const removed = downloadedCards.filter((card) => !matchedDownloaded.has(card));
+
+    return { added, removed };
+}

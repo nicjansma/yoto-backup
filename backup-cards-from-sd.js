@@ -15,7 +15,7 @@ import { readFile } from "fs/promises";
 
 // local imports
 import YotoApi from "./src/yoto-api.js";
-import { downloadFile, downloadImage, resolveIcon, writeTags } from "./src/utils.js";
+import { downloadFile, downloadImage, resolveIcon, trackBaseName, writeTags } from "./src/utils.js";
 
 //
 // Constants
@@ -163,15 +163,7 @@ for (let dir of dirs) {
             let origFileName = path.join(fullDir, track.trackUrl.replace("yoto:#", ""));
 
             // file name in output directory
-            let baseFileName = `${(trackNumber + "").padStart(2, "0")}. ${track.title}`;
-
-            if (track.overlayLabel) {
-                baseFileName = `${track.overlayLabel.padStart(2, "0")}. ${track.title}`;
-            }
-
-            if (track.overlayLabelOverride) {
-                baseFileName = `${track.overlayLabelOverride.padStart(2, "0")}. ${track.title}`;
-            }
+            let baseFileName = trackBaseName(trackNumber, track);
 
             // icon for the track
             let baseIconFileName = sanitize(`${baseFileName}.jpg`);

@@ -70,6 +70,14 @@ docker run -v ./config.json:/home/config.json -v ./device-auth.json:/home/device
 docker run -v ./config.json:/home/config.json -v ./device-auth.json:/home/device-auth.json -v /my-path-to-cards/:/data/ -v /my-path-to-sd-card/:/sd/ nicjansma:yoto-backup node backup-cards-from-sd.js /sd/ /data/
 ```
 
+## Tests
+
+Unit tests use the built-in Node.js test runner:
+
+```sh
+npm test
+```
+
 ## Version History
 
 * 2024-11-22: v1.0: Initial release

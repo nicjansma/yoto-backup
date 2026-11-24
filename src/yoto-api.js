@@ -132,7 +132,7 @@ export async function getAccessToken(config, deviceCode) {
         .then((response) => response.json())
         .then((data) => {
             if (!data || data.error) {
-                if (data.error === "authorization_pending") {
+                if (data && data.error === "authorization_pending") {
                     // User hasn't completed authorization yet, wait and continue polling
                     return null;
                 }
