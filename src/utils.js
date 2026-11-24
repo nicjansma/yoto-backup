@@ -4,7 +4,7 @@
 import NodeID3 from "node-id3";
 import download from "image-downloader";
 import { Readable } from "stream";
-import { finished } from "stream/promises";
+import { pipeline } from "stream/promises";
 import fs from "fs";
 
 //
@@ -49,10 +49,9 @@ export async function downloadFile(url, fileName) {
     // "file already exists" check would treat as complete.
     const tmpName = `${fileName}.part`;
 
-    const fileStream = fs.createWriteStream(tmpName, { flags: "w" });
-
     try {
-        await finished(Readable.fromWeb(res.body).pipe(fileStream));
+        // pipeline (unlike .pipe) propagates source errors, e.g. a dropped connection
+        await pipeline(Readable.fromWeb(res.body), fs.createWriteStream(tmpName));
     } catch (error) {
         try {
             fs.unlinkSync(tmpName);
